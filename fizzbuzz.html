@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="C:\Users\ikuya\Desktop\vuestudy\node_modules\vue\dist\vue.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div id="fizzbuzz">
+        <li v-for="num in 100" v-if="num % 15 ==0">
+            {{ num }} :fizzbuzz
+        </li>
+        <li v-else-if="num % 5 ==0">
+            {{ num }} :buzz
+        </li>
+        <li v-else-if="num % 3 ==0">
+            {{ num }} :fizz
+        </li>
+        <li v-else>
+            {{ num }}
+        </li>
+    </div>
+</body>
+</html>
