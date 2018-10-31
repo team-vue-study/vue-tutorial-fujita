@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html lang="jp">
+
+<meta charset="UTF-8">
+
+<!--<script src="C:\Users\ikuya\Desktop\vuestudy\node_modules\vue\dist\vue.js"></script>-->
+
+<script src="C:\Users\tie305202\Desktop\vuestudy\node_modules\vue\dist\vue.js"></script>
+
+<title>blackjack</title>
+
+<div id="cards-component">
+    <!-- 親コンポーネントのcardsをcardにいれて、cardを更に子コンポーネントのcardに渡してテンプレートで値を出している -->
+    <ol>
+        <h4>ディーラー</h4>
+        <cards-list v-for="card in dealerCards" :key="card.num" :card="card"></cards-list>
+        <p v-if="dealerOver21" :style="errorMessageStyle">bust!</p>
+        <p v-else>{{ dealerTotal }}</p>
+    </ol>
+    <ol>
+        <h4>プレイヤー</h4>
+        <cards-list v-for="card in playerCards" :key="card.num" :card="card"></cards-list>
+        <hit-button v-on:hit="addPlayerCard()"></hit-button><stand-button v-on:stand="stand()"></stand-button>
+        <p v-if="playerOver21" :style="errorMessageStyle">bust!</p>
+        <p>{{ playerTotal }}</p>
+        <p v-if="judge">めでたい</p>
+        <p v-else>まけ</p>
+    </ol>
+</div>
+<script>
+    //親コンポーネントがデータを持ち、子コンポーネントで表示の仕方を決めるイメージ。
+    //故に子コンポーネントは部品ごとに作るイメージ。カード、ボタン、勝敗など。
+    //また、子コンポーネントがイベントを感知して親コンポーネントに伝えてデータを書き換える。
+    //子コンポーネント。カードを表示するときに使う。
+    Vue.component('cards-list', {
+        //propsで親からデータを受け取るんじゃ
+        props: {
+            card: {
+                type: Object,
+                required: true
+            }
+        },
+        //cardを表示するとき
+        template: '<li>{{ card.mark }}の{{ card.number }}</li>'
+    })
+    //カードを引くためのボタン
+    var hitButton = Vue.extend({
+        template: '<button v-on:click="hitCard">ひく</button>',
+        //hitという名前で親コンポにイベント感知を教える
+        methods: {
+            hitCard: function () {
+                this.$emit('hit')
+            }
+        }
+    })
+    //もうひかないで勝負に出るボタン*未実装
+    var standButton = Vue.extend({
+        template: '<button v-on:click="stand">スタンド</button>',
+        methods: {
+            stand: function () {
+               this.$emit('stand')
+            }
+        }
+    })
+    //親コンポーネント
+    new Vue({
+        el: '#cards-component',
+        //子コンポーネントのボタンを使えるようにする
+        components: {
+            'hit-button': hitButton,
+            'stand-button': standButton
+        },
+        //初期データみたいなもの。本当はランダムに生成したい。
+        data: {
+            playerCards: [{
+                number: 1,
+                mark: 'heart'
+            }, {
+                number: 5,
+                mark: 'clover'
+            }],
+            dealerCards: [{
+                number: 2,
+                mark: 'diamond'
+            }, {
+                number: 3,
+                mark: 'spade'   
+            }]
+        },
+        //カードが引かれたときにdataを変更する
+        //methodsは毎回呼ばれるたびに計算をする(キャッシュを使用しない)
+        methods: {
+            addPlayerCard: function () {
+                this.playerCards.push({
+                    number: 4,
+                    mark: 'heart'
+                })
+                if (this.canDealerHitCard && !this.playerOver21) {
+                    this.dealerCards.push({
+                        number:5,
+                        mark: 'diamond'
+                    })
+                }
+            },
+            stand: function () {
+                if (this.canDealerHitCard && !this.playerOver21) {
+                    this.dealerCards.push({
+                        number: 5,
+                        mark: 'diamond'
+                    })
+                }
+            }
+ 
+        },
+        //computedはキャッシュを使用する。
+        computed: {
+            //引いたカードの合計値を返す
+            playerTotal: function () {
+                return this.playerCards.reduce(function (sum, card) {
+                    return sum + (card.number)
+                }, 0)
+            },
+            dealerTotal: function () {
+                return this.dealerCards.reduce(function (sum, card) {
+                    return sum + (card.number)
+                }, 0)
+            },
+            //バーストかどうか返す
+            playerOver21: function () {
+                return this.playerTotal > 21
+            },
+            //バーストかどうか返す
+            dealerOver21: function () {
+                return this.dealerTotal > 21
+            },
+            //ディーラーがカードを引けるかどうか返す
+            canDealerHitCard: function () {
+                return this.dealerTotal <= 17
+            },
+            //バストとかエラーメッセージ出すときのスタイルを決めたかった
+            errorMessageStyle: function () {
+                return {
+                    border: this.over21 ? '' : '1px solid red',
+                    color: this.over21 ? '' : 'red'
+                }
+            },
+            judge: function () {
+                if (!this.playerOver21) {
+                    return this.playerTotal > this.dealerTotal || this.dealerOver21
+                }
+                else {
+                    return false
+                }
+            }
+        }
+    })
+</script>
+</html>
